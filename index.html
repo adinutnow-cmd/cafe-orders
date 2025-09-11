@@ -2,10 +2,11 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>صفحة الزبون</title>
+  <title>ADI</title>
   <style>
     body {
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
@@ -13,6 +14,7 @@
       color: #fff;
       font-family: sans-serif;
       font-size: 2rem;
+      text-align: center;
     }
     .ready {
       color: #00ff99;
@@ -20,18 +22,27 @@
     .waiting {
       color: #ffcc00;
     }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #00ff99;
+      color: #111;
+    }
   </style>
 </head>
 <body>
   <div id="status" class="waiting">⏳ بانتظار الطلب...</div>
+  <button id="notifyBtn">🔔 تفعيل التنبيهات</button>
 
   <!-- Firebase SDK -->
   <script type="module">
-    // استيراد المكتبات
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
       authDomain: "cafeorders-3cd97.firebaseapp.com",
@@ -43,24 +54,47 @@
       measurementId: "G-TY9137GQ82"
     };
 
-    // تشغيل Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // جلب العنصر
     const statusDiv = document.getElementById("status");
+    const notifyBtn = document.getElementById("notifyBtn");
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
+    let notificationsEnabled = false;
 
-    // مراقبة التغيير
+    // تفعيل التنبيهات
+    notifyBtn.addEventListener("click", () => {
+      if ("Notification" in window) {
+        Notification.requestPermission().then((permission) => {
+          if (permission === "granted") {
+            notificationsEnabled = true;
+            alert("✅ تم تفعيل التنبيهات Notifications enabled");
+          } else {
+            alert("⚠️ لم يتم تفعيل التنبيهات Notifications not enabled");
+          }
+        });
+      } else {
+        alert("🚫 المتصفح لا يدعم التنبيهات Browser not supported");
+      }
+    });
+
+    // مراقبة حالة الطلب
     const statusRef = ref(db, "orders/order1/status");
     onValue(statusRef, (snapshot) => {
       const status = snapshot.val();
       if (status === "ready") {
-        statusDiv.textContent = "✅ طلبك جاهز!";
+        statusDiv.textContent = "✅ طلبك جاهز! / Your order is ready!";
         statusDiv.className = "ready";
-        // صوت تنبيه
-        new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg").play();
+
+        if (notificationsEnabled) {
+          new Notification("✅ طلبك جاهز / Your order is ready!", {
+            body: "الرجاء التوجه للاستلام / Please proceed to pick it up",
+            icon: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png"
+          });
+          audio.play();
+        }
       } else {
-        statusDiv.textContent = "⏳ بانتظار الطلب...";
+        statusDiv.textContent = "⏳ بانتظار الطلب... / Waiting for your order...";
         statusDiv.className = "waiting";
       }
     });
