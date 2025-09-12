@@ -10,46 +10,58 @@
   <p>بس يخلص طلبك رح يوصلك إشعار هون.</p>
   <button id="enableNotif">🔔 فعل الإشعارات</button>
 
- <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
 
-  // إعدادات Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
-    authDomain: "cafeorders-3cd97.firebaseapp.com",
-    databaseURL: "https://cafeorders-3cd97-default-rtdb.firebaseio.com",
-    projectId: "cafeorders-3cd97",
-    storageBucket: "cafeorders-3cd97.firebasestorage.app",
-    messagingSenderId: "1066008207283",
-    appId: "1:1066008207283:web:016435ecd8c9ba327d35c6",
-    measurementId: "G-TY9137GQ82"
-  };
+    // إعدادات Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
+      authDomain: "cafeorders-3cd97.firebaseapp.com",
+      projectId: "cafeorders-3cd97",
+      storageBucket: "cafeorders-3cd97.appspot.com",
+      messagingSenderId: "1066008207283",
+      appId: "1:1066008207283:web:016435ecd8c9ba327d35c6",
+      measurementId: "G-TY9137GQ82"
+    };
 
-  // تشغيل Firebase
-  const app = initializeApp(firebaseConfig);
-  const messaging = getMessaging(app);
+    // تشغيل Firebase
+    const app = initializeApp(firebaseConfig);
+    const messaging = getMessaging(app);
 
-  // طلب إذن الإشعارات + جلب التوكن
-  getToken(messaging, { vapidKey: "niKRW7gStWMVoxVNRtHyD_n5zpWmIvHRiBo7XgtnYQk" })
-    .then((currentToken) => {
-      if (currentToken) {
-        console.log("توكن الجهاز:", currentToken);
-      } else {
-        console.log("ما قدرنا نجيب التوكن، يمكن الإذن مرفوض.");
-      }
-    })
-    .catch((err) => {
-      console.log("خطأ بجلب التوكن:", err);
+    // تسجيل الـ Service Worker
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("firebase-messaging-sw.js")
+        .then((registration) => {
+          console.log("Service Worker مسجل:", registration);
+        })
+        .catch((err) => console.log("Service Worker Error:", err));
+    }
+
+    // زر تفعيل الإشعارات
+    document.getElementById("enableNotif").addEventListener("click", () => {
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          getToken(messaging, { vapidKey: "niKRW7gStWMVoxVNRtHyD_n5zpWmIvHRiBo7XgtnYQk" })
+            .then((currentToken) => {
+              if (currentToken) {
+                console.log("✅ التوكن:", currentToken);
+              } else {
+                console.log("⚠️ ما قدرنا نجيب التوكن");
+              }
+            })
+            .catch((err) => console.log("خطأ بجلب التوكن:", err));
+        } else {
+          alert("🚫 لازم تسمح بالتنبيهات لحتى توصلك إشعارات.");
+        }
+      });
     });
 
-  // استقبال الإشعارات أثناء فتح الصفحة
-  onMessage(messaging, (payload) => {
-    console.log("إشعار جديد:", payload);
-    alert("📢 وصلك إشعار: " + payload.notification.title);
-  });
-</script>
-
+    // استقبال إشعارات والصفحة مفتوحة
+    onMessage(messaging, (payload) => {
+      console.log("📢 إشعار جديد:", payload);
+      alert("📢 وصلك إشعار: " + payload.notification.title);
+    });
+  </script>
 </body>
 </html>
-
