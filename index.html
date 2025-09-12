@@ -42,69 +42,70 @@
   <button id="notifyBtn">🔔 تفعيل التنبيهات</button>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
-      authDomain: "cafeorders-3cd97.firebaseapp.com",
-      databaseURL: "https://cafeorders-3cd97-default-rtdb.firebaseio.com",
-      projectId: "cafeorders-3cd97",
-      storageBucket: "cafeorders-3cd97.firebasestorage.app",
-      messagingSenderId: "1066008207283",
-      appId: "1:1066008207283:web:016435ecd8c9ba327d35c6"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
+    authDomain: "cafeorders-3cd97.firebaseapp.com",
+    databaseURL: "https://cafeorders-3cd97-default-rtdb.firebaseio.com",
+    projectId: "cafeorders-3cd97",
+    storageBucket: "cafeorders-3cd97.firebasestorage.app",
+    messagingSenderId: "1066008207283",
+    appId: "1:1066008207283:web:016435ecd8c9ba327d35c6"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
 
-    const statusDiv = document.getElementById("status");
-    const notifyBtn = document.getElementById("notifyBtn");
-    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
-    let notificationsEnabled = false;
+  const statusDiv = document.getElementById("status");
+  const notifyBtn = document.getElementById("notifyBtn");
 
-    // زر تفعيل التنبيهات
-    notifyBtn.addEventListener("click", () => {
-      // تشغيل صوت قصير ليأخذ إذن من الموبايل
-      audio.play().catch(() => {
-        console.log("⚠️ لازم المستخدم يسمح بالصوت");
-      });
+  let notificationsEnabled = false;
+  const audio = new Audio("https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg");
 
-      if ("Notification" in window) {
-        Notification.requestPermission().then((permission) => {
-          if (permission === "granted") {
-            notificationsEnabled = true;
-            alert("✅ تم تفعيل التنبيهات مع الصوت / Notifications + sound enabled");
-          } else {
-            alert("⚠️ لم يتم تفعيل التنبيهات / Notifications not enabled");
-          }
-        });
-      }
-    });
+  // تفعيل التنبيهات والصوت
+  notifyBtn.addEventListener("click", async () => {
+    try {
+      await audio.play(); // صوت قصير لإعطاء إذن
+      audio.pause();
+      audio.currentTime = 0;
+      notificationsEnabled = true;
+      alert("✅ الصوت والتنبيهات مفعلة / Sound + Notifications Enabled");
+    } catch (err) {
+      alert("⚠️ لازم تكبس للسماح بالصوت / You must tap to allow sound");
+    }
 
-    // مراقبة الطلب
-    const statusRef = ref(db, "orders/order1/status");
-    onValue(statusRef, (snapshot) => {
-      const status = snapshot.val();
-      if (status === "ready") {
-        statusDiv.textContent = "✅ طلبك جاهز! / Your order is ready!";
-        statusDiv.className = "ready";
+    if ("Notification" in window) {
+      Notification.requestPermission();
+    }
+  });
 
-        if (notificationsEnabled) {
+  // مراقبة الطلب
+  const statusRef = ref(db, "orders/order1/status");
+  onValue(statusRef, (snapshot) => {
+    const status = snapshot.val();
+    if (status === "ready") {
+      statusDiv.textContent = "✅ طلبك جاهز! / Your order is ready!";
+      statusDiv.className = "ready";
+
+      if (notificationsEnabled) {
+        audio.play();
+        if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        if (Notification.permission === "granted") {
           new Notification("✅ طلبك جاهز / Your order is ready!", {
             body: "الرجاء التوجه للاستلام / Please proceed to pick it up",
             icon: "https://cdn-icons-png.flaticon.com/512/1046/1046784.png"
           });
-          audio.play(); // تشغيل الصوت
-          if (navigator.vibrate) {
-            navigator.vibrate([200, 100, 200]); // اهتزاز قصير
-          }
         }
-      } else {
-        statusDiv.textContent = "⏳ بانتظار الطلب... / Waiting for your order...";
-        statusDiv.className = "waiting";
       }
-    });
-  </script>
+    } else {
+      statusDiv.textContent = "⏳ بانتظار الطلب... / Waiting for your order...";
+      statusDiv.className = "waiting";
+    }
+  });
+</script>
+
 </body>
 </html>
+
