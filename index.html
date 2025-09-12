@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ADI</title>
+  <title>ADI Orders</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <h1>مرحباً 👋</h1>
-  <p>بس يخلص طلبك رح يوصلك إشعار هون.</p>
-  <button id="enableNotif">🔔 فعل الإشعارات</button>
+  <h1>Hello 👋</h1>
+  <p>You will receive a notification here when your order is ready.</p>
+  <button id="enableNotif">🔔 Enable Notifications</button>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js";
 
-    // إعدادات Firebase
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
       authDomain: "cafeorders-3cd97.firebaseapp.com",
@@ -25,42 +25,36 @@
       measurementId: "G-TY9137GQ82"
     };
 
-    // تشغيل Firebase
+    // Initialize Firebase
     const app = initializeApp(firebaseConfig);
     const messaging = getMessaging(app);
 
-    // تسجيل الـ Service Worker
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("firebase-messaging-sw.js")
-        .then((registration) => {
-          console.log("Service Worker مسجل:", registration);
-        })
-        .catch((err) => console.log("Service Worker Error:", err));
-    }
-
-    // زر تفعيل الإشعارات
-    document.getElementById("enableNotif").addEventListener("click", () => {
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          getToken(messaging, { vapidKey: "niKRW7gStWMVoxVNRtHyD_n5zpWmIvHRiBo7XgtnYQk" })
-            .then((currentToken) => {
-              if (currentToken) {
-                console.log("✅ التوكن:", currentToken);
-              } else {
-                console.log("⚠️ ما قدرنا نجيب التوكن");
-              }
-            })
-            .catch((err) => console.log("خطأ بجلب التوكن:", err));
-        } else {
-          alert("🚫 لازم تسمح بالتنبيهات لحتى توصلك إشعارات.");
-        }
-      });
+    // Enable notifications button
+    document.getElementById("enableNotif").addEventListener("click", async () => {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        console.log("Notification permission granted.");
+        getToken(messaging, { vapidKey: "niKRW7gStWMVoxVNRtHyD_n5zpWmIvHRiBo7XgtnYQk" })
+          .then((currentToken) => {
+            if (currentToken) {
+              console.log("Device Token:", currentToken);
+              alert("Notifications enabled! Check console for the token.");
+            } else {
+              console.log("No registration token available.");
+            }
+          })
+          .catch((err) => {
+            console.log("An error occurred while retrieving token:", err);
+          });
+      } else {
+        console.log("Notification permission denied.");
+      }
     });
 
-    // استقبال إشعارات والصفحة مفتوحة
+    // Foreground message handler
     onMessage(messaging, (payload) => {
-      console.log("📢 إشعار جديد:", payload);
-      alert("📢 وصلك إشعار: " + payload.notification.title);
+      console.log("Message received: ", payload);
+      alert("🔔 New notification: " + payload.notification.title);
     });
   </script>
 </body>
