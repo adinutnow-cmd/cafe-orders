@@ -10,47 +10,46 @@
   <p>بس يخلص طلبك رح يوصلك إشعار هون.</p>
   <button id="enableNotif">🔔 فعل الإشعارات</button>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging.js";
 
-    // إعدادات Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
-      authDomain: "cafeorders-3cd97.firebaseapp.com",
-      databaseURL: "https://cafeorders-3cd97-default-rtdb.firebaseio.com",
-      projectId: "cafeorders-3cd97",
-      storageBucket: "cafeorders-3cd97.firebasestorage.app",
-      messagingSenderId: "1066008207283",
-      appId: "1:1066008207283:web:016435ecd8c9ba327d35c6",
-      measurementId: "G-TY9137GQ82"
-    };
+  // إعدادات Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDR9hkeAE5jn-Ojoq7ANMA28EKBlGWRwNQ",
+    authDomain: "cafeorders-3cd97.firebaseapp.com",
+    databaseURL: "https://cafeorders-3cd97-default-rtdb.firebaseio.com",
+    projectId: "cafeorders-3cd97",
+    storageBucket: "cafeorders-3cd97.firebasestorage.app",
+    messagingSenderId: "1066008207283",
+    appId: "1:1066008207283:web:016435ecd8c9ba327d35c6",
+    measurementId: "G-TY9137GQ82"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const messaging = getMessaging(app);
+  // تشغيل Firebase
+  const app = initializeApp(firebaseConfig);
+  const messaging = getMessaging(app);
 
-    const button = document.getElementById("enableNotif");
-
-    button.addEventListener("click", async () => {
-      try {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          const token = await getToken(messaging, { vapidKey: "🔑_VAPID_KEY_هون" });
-          console.log("✅ Device Token:", token);
-          alert("الإشعارات مفعلة، جاهزين يبعتولك إشعار!");
-        } else {
-          alert("لازم تسمح بالإشعارات");
-        }
-      } catch (err) {
-        console.error("Error:", err);
+  // طلب إذن الإشعارات + جلب التوكن
+  getToken(messaging, { vapidKey: "niKRW7gStWMVoxVNRtHyD_n5zpWmIvHRiBo7XgtnYQk" })
+    .then((currentToken) => {
+      if (currentToken) {
+        console.log("توكن الجهاز:", currentToken);
+      } else {
+        console.log("ما قدرنا نجيب التوكن، يمكن الإذن مرفوض.");
       }
+    })
+    .catch((err) => {
+      console.log("خطأ بجلب التوكن:", err);
     });
 
-    // إشعار لما الصفحة تكون مفتوحة
-    onMessage(messaging, (payload) => {
-      console.log("📩 Message received: ", payload);
-      alert("🔔 " + payload.notification.title + "\n" + payload.notification.body);
-    });
-  </script>
+  // استقبال الإشعارات أثناء فتح الصفحة
+  onMessage(messaging, (payload) => {
+    console.log("إشعار جديد:", payload);
+    alert("📢 وصلك إشعار: " + payload.notification.title);
+  });
+</script>
+
 </body>
 </html>
+
