@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ADI - Current Order</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff3cd;
+      text-align: center;
+      padding-top: 50px;
+      transition: background-color 0.5s;
+    }
+    h2 { color: #856404; }
+    #orderNumber {
+      font-size: 48px;
+      font-weight: bold;
+      color: #856404;
+      margin: 20px 0;
+    }
+    #status {
+      margin-top: 10px;
+      font-size: 20px;
+      color: #856404;
+    }
+    .ready { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h2>ADI - Current Order</h2>
+<div id="orderNumber">—</div>
+<p id="status">Waiting for updates...</p>
+
+<audio id="readySound" src="ready.mp3" preload="auto"></audio>
+
+<script type="module">
+  // Firebase imports
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+  import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+
+  // Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyDOoOCdWjdQ5eEdjqUlXvOMBRr6tNAujzI",
+    authDomain: "first-proj-26e93.firebaseapp.com",
+    databaseURL: "https://first-proj-26e93-default-rtdb.firebaseio.com",
+    projectId: "first-proj-26e93",
+    storageBucket: "first-proj-26e93.firebasestorage.app",
+    messagingSenderId: "939884755349",
+    appId: "1:939884755349:web:81f4666a00d0f5952a9e9c",
+    measurementId: "G-D20036Q3KQ"
+  };
+
+  // Init Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const numberEl = document.getElementById("orderNumber");
+  const statusEl = document.getElementById("status");
+  const sound = document.getElementById("readySound");
+
+  // listen for "currentOrder" value (هذا لازم الأدمن يكتبه برتبة منفصلة بالـ DB)
+  const currentRef = ref(db, "currentOrder");
+
+  onValue(currentRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const orderId = snapshot.val();
+      numberEl.textContent = orderId;
+      statusEl.textContent = "Now serving order #" + orderId;
+
+      // play sound on change
+      sound.play().catch(e => console.log(e));
+
+      // flash background green
+      document.body.style.backgroundColor = "#d4edda";
+      setTimeout(() => {
+        document.body.style.backgroundColor = "#fff3cd";
+      }, 1500);
+    } else {
+      numberEl.textContent = "—";
+      statusEl.textContent = "No current order.";
+    }
+  });
+</script>
+
+</body>
+</html>

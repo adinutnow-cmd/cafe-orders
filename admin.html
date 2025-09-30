@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ADI - Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f8f9fa;
+      text-align: center;
+      padding-top: 50px;
+    }
+    h2 { color: #333; }
+    input {
+      padding: 10px;
+      font-size: 16px;
+      width: 200px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #28a745;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background-color: #218838; }
+    #msg {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #007bff;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>ADI - Admin Panel</h2>
+  <input id="orderId" type="text" placeholder="Enter order number">
+  <button onclick="markReady()">Set Current Order ✅</button>
+
+  <p id="msg"></p>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-database.js";
+
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDOoOCdWjdQ5eEdjqUlXvOMBRr6tNAujzI",
+      authDomain: "first-proj-26e93.firebaseapp.com",
+      databaseURL: "https://first-proj-26e93-default-rtdb.firebaseio.com",
+      projectId: "first-proj-26e93",
+      storageBucket: "first-proj-26e93.firebasestorage.app",
+      messagingSenderId: "939884755349",
+      appId: "1:939884755349:web:81f4666a00d0f5952a9e9c",
+      measurementId: "G-D20036Q3KQ"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.markReady = function() {
+      const orderId = document.getElementById("orderId").value.trim();
+      if (!orderId) {
+        document.getElementById("msg").innerText = "⚠️ Please enter an order number.";
+        return;
+      }
+
+      // نكتب الرقم الحالي في currentOrder
+      set(ref(db, "currentOrder"), orderId)
+        .then(() => {
+          document.getElementById("msg").innerText = "✅ Current order set to #" + orderId;
+          document.getElementById("orderId").value = "";
+        })
+        .catch((err) => {
+          document.getElementById("msg").innerText = "❌ Error: " + err.message;
+        });
+    };
+  </script>
+
+</body>
+</html>
